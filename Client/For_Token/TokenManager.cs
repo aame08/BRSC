@@ -3,7 +3,6 @@ using System.IO;
 
 namespace Client.For_Token
 {
-    // хуета для сохранения токенов
     public class TokenManager
     {
         public static void SaveToken(int id_user, string token)
@@ -34,7 +33,16 @@ namespace Client.For_Token
             var handler = new JwtSecurityTokenHandler();
             var jwtToken = handler.ReadJwtToken(token);
             var roleClaim = jwtToken.Claims.FirstOrDefault(c => c.Type == "role");
-            return roleClaim.Value;
+            if (roleClaim != null) { return roleClaim.Value; }
+            return "";
+        }
+        public static int GetIdUserByToken(string token)
+        {
+            var handler = new JwtSecurityTokenHandler();
+            var jwtToken = handler.ReadJwtToken(token);
+            var idUserClaim = jwtToken.Claims.FirstOrDefault(c => c.Type == "id_user");
+            if (idUserClaim != null && int.TryParse(idUserClaim.Value, out int id_user)) { return id_user; }
+            return 0;
         }
     }
 }

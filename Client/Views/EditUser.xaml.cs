@@ -16,16 +16,13 @@ using System.Windows.Shapes;
 namespace Client.Views
 {
     /// <summary>
-    /// Логика взаимодействия для AdminPage.xaml
+    /// Логика взаимодействия для EditUser.xaml
     /// </summary>
-    public partial class AdminPage : Page
+    public partial class EditUser : Page
     {
-        public string adminToken;
-        public AdminPage(string token)
+        public EditUser()
         {
             InitializeComponent();
-
-            adminToken = token;
         }
 
         private void bExit_Click(object sender, RoutedEventArgs e)
@@ -33,7 +30,17 @@ namespace Client.Views
 
         }
 
+        private void toggleShowPassword_Click(object sender, RoutedEventArgs e)
+        {
+
+        }
+
         private void bEdit_Click(object sender, RoutedEventArgs e)
+        {
+
+        }
+
+        private void bDelete_Click(object sender, RoutedEventArgs e)
         {
 
         }

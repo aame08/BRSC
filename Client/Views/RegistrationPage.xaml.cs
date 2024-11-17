@@ -11,17 +11,14 @@ namespace Client.Views
     /// </summary>
     public partial class RegistrationPage : Page
     {
-        public static RegistrationPage registration;
         public RegistrationPage()
         {
             InitializeComponent();
-
-            registration = this;
         }
 
         private void bExit_Click(object sender, RoutedEventArgs e)
         {
-            registration.Visibility = Visibility.Hidden;
+            this.Visibility = Visibility.Hidden;
         }
 
         private bool IsValidUserName(string str)
@@ -70,7 +67,7 @@ namespace Client.Views
                 {
                     MessageBox.Show("Успешно.");
 
-                    registration.Visibility = Visibility.Hidden;
+                    this.Visibility = Visibility.Hidden;
                 }
                 else { MessageBox.Show("Ошибка регистрации."); }
             }

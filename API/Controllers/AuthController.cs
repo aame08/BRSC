@@ -27,8 +27,8 @@ namespace API.Controllers
                 NameUser = userDTO.NameUser,
                 EmailUser = userDTO.EmailUser,
                 PasswordHash = passwordHash,
-                IdRole = 3,
-                IdRoleNavigation = Program.context.Roles.FirstOrDefault(r => r.IdRole == 3)
+                IdRole = userDTO.IdRole,
+                IdRoleNavigation = Program.context.Roles.FirstOrDefault(r => r.IdRole == userDTO.IdRole)
             };
 
             if (newUser.IdRoleNavigation == null) { return StatusCode(500, "Роль не найдена."); }

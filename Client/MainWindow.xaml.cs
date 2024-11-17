@@ -11,12 +11,9 @@ namespace Client
     /// </summary>
     public partial class MainWindow : Window
     {
-        public static MainWindow mainWindow;
         public MainWindow()
         {
             InitializeComponent();
-
-            mainWindow = this;
         }
 
         private void toggleShowPassword_Click(object sender, RoutedEventArgs e)
@@ -40,6 +37,7 @@ namespace Client
         private void bExit_Click(object sender, RoutedEventArgs e)
         {
             tbEmail.Text = string.Empty;
+            pbPassword.Password = string.Empty;
             tbPassword.Text = string.Empty;
         }
 
@@ -74,6 +72,9 @@ namespace Client
                     {
                         MessageBox.Show("С возвращением.");
                         NavigatePage(token);
+                        tbEmail.Text = string.Empty;
+                        pbPassword.Password = string.Empty;
+                        tbPassword.Text = string.Empty;
                         return;
                     }
                     else { TokenManager.DeleteToken(id_user); }
@@ -86,6 +87,9 @@ namespace Client
                 {
                     MessageBox.Show("Успешная авторизация.");
                     NavigatePage(token);
+                    tbEmail.Text = string.Empty;
+                    pbPassword.Password = string.Empty;
+                    tbPassword.Text = string.Empty;
                 }
                 else { MessageBox.Show("Ошибка авторизации."); }
             }
@@ -97,13 +101,16 @@ namespace Client
             switch (role)
             {
                 case "Admin":
-                    frame.NavigationService.Navigate(new AdminPage());
+                    frame.NavigationService.Navigate(new AdminPage(token));
                     break;
                 case "Manager":
-                    frame.NavigationService.Navigate(new ManagerPage());
+                    frame.NavigationService.Navigate(new ManagerPage(token));
                     break;
                 case "User":
-                    frame.NavigationService.Navigate(new UserPage());
+                    frame.NavigationService.Navigate(new UserPage(token));
+                    break;
+                default:
+                    MessageBox.Show("Ошибка.");
                     break;
             }
         }

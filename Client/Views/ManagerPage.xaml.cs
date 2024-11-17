@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Client.Data;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -20,9 +21,25 @@ namespace Client.Views
     /// </summary>
     public partial class ManagerPage : Page
     {
-        public ManagerPage()
+        public string tokenManager;
+        public ManagerPage(string token)
         {
             InitializeComponent();
+
+            tokenManager = token;
+
+            LoadUsers();
+        }
+        private async void LoadUsers()
+        {
+            var result = await Api.GetUsers(tokenManager);
+            dgUsers.Items.Clear();
+            foreach (var user in result) { dgUsers.Items.Add(user); }
+        }
+
+        private void bExit_Click(object sender, RoutedEventArgs e)
+        {
+            this.Visibility = Visibility.Hidden;
         }
     }
 }

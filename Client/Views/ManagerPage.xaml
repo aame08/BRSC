@@ -8,7 +8,30 @@
       d:DesignHeight="450" d:DesignWidth="800"
       Title="ManagerPage">
 
-    <Grid>
-        
+    <Grid Background="#E2E2E2">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="3*"/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="3*"/>
+        </Grid.RowDefinitions>
+
+        <Border Background="SlateGray" Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2"/>
+        <TextBlock Text="Панель менеджера" FontStyle="Oblique" FontSize="36" HorizontalAlignment="Center" VerticalAlignment="Center" Grid.Row="0" Grid.Column="1" Margin="0, 5, 0, 5"/>
+
+        <StackPanel Orientation="Vertical" HorizontalAlignment="Center" VerticalAlignment="Center" Grid.Row="1" Grid.Column="0" Cursor="Hand">
+            <TextBlock Text="Пользователи" Foreground="#2E2E2E" Margin="5" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            <Button x:Name="bExit" Content="Выйти" Style="{StaticResource GrayButton}" Margin="5" Cursor="Hand" Height="35" Width="150" Click="bExit_Click"/>
+        </StackPanel>
+        <DataGrid x:Name="dgUsers" Grid.Row="1" Grid.Column="1">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="ID" Binding="{Binding IdUser}" Width="1*"/>
+                <DataGridTextColumn Header="Имя" Binding="{Binding NameUser}" Width="1.5*"/>
+                <DataGridTextColumn Header="Почта" Binding="{Binding EmailUser}" Width="1.5*"/>
+                <DataGridTextColumn Header="Роль" Binding="{Binding IdRoleNavigation.NameRole}" Width="1*"/>
+            </DataGrid.Columns>
+        </DataGrid>
     </Grid>
 </Page>

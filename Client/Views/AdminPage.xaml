@@ -27,10 +27,10 @@
         </StackPanel>
         <DataGrid x:Name="dgUsers" Grid.Row="1" Grid.Column="1">
             <DataGrid.Columns>
-                <DataGridTextColumn Header="ID" Binding="{Binding ProductArticleNumber}" Width="1*"/>
-                <DataGridTextColumn Header="Имя" Binding="{Binding Name}" Width="1.5*"/>
-                <DataGridTextColumn Header="Почта" Binding="{Binding Description}" Width="1.5*"/>
-                <DataGridTextColumn Header="Роль" Binding="{Binding ProductType.Name}" Width="1*"/>
+                <DataGridTextColumn Header="ID" Binding="{Binding IdUser}" Width="1*"/>
+                <DataGridTextColumn Header="Имя" Binding="{Binding NameUser}" Width="1.5*"/>
+                <DataGridTextColumn Header="Почта" Binding="{Binding EmailUser}" Width="1.5*"/>
+                <DataGridTextColumn Header="Роль" Binding="{Binding IdRoleNavigation.NameRole}" Width="1*"/>
                 <DataGridTemplateColumn Header="Действие" Width="*">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>

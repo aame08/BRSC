@@ -3,7 +3,6 @@ using System.Text;
 
 namespace Client.For_Token
 {
-    // хуйня для защиты токенов
     public class TokenStorage
     {
         public static string Protect(string data)

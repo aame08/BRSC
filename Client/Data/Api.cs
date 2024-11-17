@@ -2,10 +2,10 @@
 using Client.For_Token;
 using Client.Models;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
-using System.Windows;
 
 namespace Client.Data
 {
@@ -57,34 +57,9 @@ namespace Client.Data
                     TokenManager.SaveToken(id_user, token);
                     return token;
                 }
-                else
-                {
-                    var errorContent = await result.Content.ReadAsStringAsync();
-                    MessageBox.Show($"Error: {errorContent}");
-                }
                 return null;
             }
         }
-        //public static async Task<bool> LoginWithToken(string email)
-        //{
-        //    var id_user = await GetUserIdByEmail(email);
-        //    if (id_user == 0) { return false; }
-
-        //    var token = TokenManager.GetToken(id_user);
-        //    if (token == null) { return false; }
-
-        //    using (var client = new HttpClient())
-        //    {
-        //        client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
-        //        var result = await client.GetAsync("https://localhost:7195/api/Auth/verify-token");
-        //        if (result.StatusCode == System.Net.HttpStatusCode.OK) { return true; }
-        //        else
-        //        {
-        //            TokenManager.DeleteToken(id_user);
-        //            return false;
-        //        }
-        //    }
-        //}
         public static async Task<int> GetUserIdByEmail(string email)
         {
             using (var client = new HttpClient())
@@ -121,6 +96,38 @@ namespace Client.Data
                     return JsonConvert.DeserializeObject<List<User>>(response);
                 }
                 return [];
+            }
+        }
+
+        public static async Task<User> GetUser(int id_user, string token)
+        {
+            using (var client = new HttpClient())
+            {
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+                var url = $"https://localhost:7195/api/Users/{id_user}";
+
+                var response = await client.GetAsync(url);
+                if (response.StatusCode == System.Net.HttpStatusCode.OK)
+                {
+                    var json = await response.Content.ReadAsStringAsync();
+                    var user = JsonConvert.DeserializeObject<User>(json);
+                    return user;
+                }
+                return null;
+            }
+        }
+        public static async Task<bool> UpdateUser(int id_user, UserDTO user, string token)
+        {
+            using (var client = new HttpClient())
+            {
+                client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+
+                var json = JsonConvert.SerializeObject(user);
+                var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+                var result = await client.PutAsync($"https://localhost:7195/api/Users/{id_user}", content);
+                if (result.StatusCode == System.Net.HttpStatusCode.OK) { return true; }
+                return false;
             }
         }
     }

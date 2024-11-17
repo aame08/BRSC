@@ -11,5 +11,7 @@
         public string PasswordHash { get; set; } = null!;
 
         public int IdRole { get; set; }
+
+        public virtual Role IdRoleNavigation { get; set; } = null!;
     }
 }
