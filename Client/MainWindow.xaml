@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Client"
         mc:Ignorable="d"
-        Title="Oyy shiiit" Height="450" Width="800" MinHeight="450" MinWidth="800" WindowStartupLocation="CenterScreen">
+        Title="БРСК" Height="450" Width="800" MinHeight="450" MinWidth="800" WindowStartupLocation="CenterScreen" Icon="/logo.png">
     <Grid Background="#E2E2E2">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*"/>
@@ -22,8 +22,8 @@
 
         <StackPanel Orientation="Vertical" HorizontalAlignment="Center" VerticalAlignment="Center" Grid.Row="1" Grid.Column="1">
             <StackPanel Orientation="Horizontal" Margin="5">
-                <TextBlock Text="Введите логин: " Width="125" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="16"/>
-                <TextBox x:Name="tbLogin" Width="150" Height="25"/>
+                <TextBlock Text="Введите почту: " Width="125" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="16"/>
+                <TextBox x:Name="tbEmail" Width="150" Height="25"/>
             </StackPanel>
 
             <StackPanel Orientation="Horizontal" Margin="5">

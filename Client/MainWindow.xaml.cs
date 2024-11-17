@@ -1,4 +1,7 @@
-﻿using Client.Views;
+﻿using Client.Data;
+using Client.For_Token;
+using Client.Views;
+using System.Text.RegularExpressions;
 using System.Windows;
 
 namespace Client
@@ -36,13 +39,73 @@ namespace Client
 
         private void bExit_Click(object sender, RoutedEventArgs e)
         {
-            tbLogin.Text = string.Empty;
+            tbEmail.Text = string.Empty;
             tbPassword.Text = string.Empty;
         }
 
-        private void bEnter_Click(object sender, RoutedEventArgs e)
+        private bool IsValidEmail(string email)
         {
-            MessageBox.Show("Иди нахуй слушай)");
+            if (string.IsNullOrWhiteSpace(email))
+                return false;
+
+            string pattern = @"^[^@\s]+@[^@\s]+\.[^@\s]+$";
+            Regex regex = new Regex(pattern);
+            return regex.IsMatch(email);
+        }
+        private bool IsPasswordValid(string password)
+        {
+            if (string.IsNullOrEmpty(password))
+                return false;
+            if (password.Length > 60)
+                return false;
+
+            return true;
+        }
+        private async void bEnter_Click(object sender, RoutedEventArgs e)
+        {
+            var id_user = await Api.GetUserIdByEmail(tbEmail.Text);
+            if (id_user != 0)
+            {
+                string token = TokenManager.GetToken(id_user);
+                if (token != null)
+                {
+                    bool isTokenValid = await Api.VerifyToken(token);
+                    if (isTokenValid)
+                    {
+                        MessageBox.Show("С возвращением.");
+                        NavigatePage(token);
+                        return;
+                    }
+                    else { TokenManager.DeleteToken(id_user); }
+                }
+            }
+            if (IsValidEmail(tbEmail.Text) && IsPasswordValid(pbPassword.Password))
+            {
+                var token = await Api.Login(tbEmail.Text, pbPassword.Password);
+                if (token != null)
+                {
+                    MessageBox.Show("Успешная авторизация.");
+                    NavigatePage(token);
+                }
+                else { MessageBox.Show("Ошибка авторизации."); }
+            }
+            else { MessageBox.Show("Неверный формат данных."); }
+        }
+        private void NavigatePage(string token)
+        {
+            var role = TokenManager.GetRoleByToken(token);
+            switch (role)
+            {
+                case "Admin":
+                    frame.NavigationService.Navigate(new AdminPage());
+                    break;
+                case "Manager":
+                    frame.NavigationService.Navigate(new ManagerPage());
+                    break;
+                case "User":
+                    frame.NavigationService.Navigate(new UserPage());
+                    break;
+            }
         }
 
         private void bReg_Click(object sender, RoutedEventArgs e)

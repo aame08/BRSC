@@ -72,7 +72,9 @@ namespace Client.Views
 
                     registration.Visibility = Visibility.Hidden;
                 }
+                else { MessageBox.Show("Ошибка регистрации."); }
             }
+            else { MessageBox.Show("Неверный формат данных."); }
         }
 
         private void toggleShowPassword_Click(object sender, RoutedEventArgs e)

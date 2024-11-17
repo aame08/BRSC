@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System.IdentityModel.Tokens.Jwt;
+using System.IO;
 
 namespace Client.For_Token
 {
@@ -27,6 +28,13 @@ namespace Client.For_Token
 
             if (File.Exists(fileName))
                 File.Delete(fileName);
+        }
+        public static string GetRoleByToken(string token)
+        {
+            var handler = new JwtSecurityTokenHandler();
+            var jwtToken = handler.ReadJwtToken(token);
+            var roleClaim = jwtToken.Claims.FirstOrDefault(c => c.Type == "role");
+            return roleClaim.Value;
         }
     }
 }

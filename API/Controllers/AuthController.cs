@@ -1,7 +1,9 @@
 ﻿using API.DTOs;
 using API.JwtTokens;
 using API.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace API.Controllers
 {
@@ -36,7 +38,35 @@ namespace API.Controllers
             Program.context.Users.Add(newUser);
             Program.context.SaveChanges();
 
-            return StatusCode(201, new {User = newUser, Token = token});
+            return StatusCode(201, new { User = newUser, Token = token });
+        }
+
+        [HttpPost("login")]
+        public ActionResult Login(string email, string password)
+        {
+            var user = Program.context.Users
+                .Include(u => u.IdRoleNavigation)
+                .FirstOrDefault(u => u.EmailUser == email);
+
+            if (user == null) { return Unauthorized("Пользователь не найден."); }
+            if (!BCrypt.Net.BCrypt.Verify(password, user.PasswordHash)) { return Unauthorized("Неверный пароль."); }
+
+            var token = _jwtProvider.GenerateToken(user);
+
+            return Ok(new { User = user, Token = token });
+        }
+
+        [HttpGet("{email}")]
+        public ActionResult<int> GetIdUserByEmail(string email)
+        {
+            var user = Program.context.Users.FirstOrDefault(u => u.EmailUser == email);
+            return user != null ? user.IdUser : 0;
+        }
+        [Authorize]
+        [HttpGet("verify-token")]
+        public ActionResult VerifyToken()
+        {
+            return Ok("Токен валидный.");
         }
     }
 }
