@@ -39,7 +39,7 @@
                     </StackPanel>
 
                     <StackPanel Orientation="Horizontal" Margin="5">
-                        <TextBlock Text="Пароль: " Width="130" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="14"/>
+                        <TextBlock Text="Новый пароль: " Width="130" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="14"/>
                         <TextBox x:Name="tbPassword" Text="{Binding PasswordHash}" Width="150" Height="25" Visibility="Collapsed"/>
                         <PasswordBox x:Name="pbPassword" PasswordChar="*" Width="150" Height="25"/>
                         <ToggleButton x:Name="toggleShowPassword" Content="👁" BorderBrush="{x:Null}" Background="{x:Null}" Click="toggleShowPassword_Click"/>
@@ -47,7 +47,7 @@
 
                     <StackPanel Orientation="Horizontal" Margin="5">
                         <TextBlock Text="Роль: " Width="130" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="14"/>
-                        <ComboBox x:Name="cbRoles" SelectedValue="{Binding Role.IdRole}" Width="150" Height="25"/>
+                        <ComboBox x:Name="cbRoles" SelectedValue="{Binding IdRoleNavigation.IdRole}" Width="150" Height="25"/>
                     </StackPanel>
                 </StackPanel>
             </StackPanel>

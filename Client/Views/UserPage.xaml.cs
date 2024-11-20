@@ -14,7 +14,7 @@ namespace Client.Views
     public partial class UserPage : Page
     {
         public string userToken;
-        public int id_user;
+        public int userID;
         public UserPage(string token)
         {
             InitializeComponent();
@@ -24,14 +24,23 @@ namespace Client.Views
         }
         private async Task<User> ViewUser(string token)
         {
-            id_user = TokenManager.GetIdUserByToken(userToken);
-            if (id_user != 0)
+            userID = TokenManager.GetIdUserByToken(userToken);
+            if (userID != 0)
             {
-                var user = await Api.GetUser(id_user, token);
-                if (user != null)
+                token = await Api.TokenValid(userID, token);
+                if (token != null)
                 {
-                    tbName.Text = user.NameUser;
-                    tbEmail.Text = user.EmailUser;
+                    var user = await Api.GetUser(userID, token);
+                    if (user != null)
+                    {
+                        tbName.Text = user.NameUser;
+                        tbEmail.Text = user.EmailUser;
+                    }
+                }
+                else
+                {
+                    MessageBox.Show("Ошибка аутентификации. Войдите снова.");
+                    this.Visibility = Visibility.Hidden;
                 }
             }
             return null;
@@ -101,16 +110,25 @@ namespace Client.Views
 
                 var userUpdate = new UserDTO
                 {
-                    IdUser = id_user,
+                    IdUser = userID,
                     NameUser = tbName.Text,
                     EmailUser = tbEmail.Text,
                     PasswordHash = newPassword,
                     IdRole = 3
                 };
 
-                var result = await Api.UpdateUser(id_user, userUpdate, userToken);
-                if (result == true) { MessageBox.Show("Информация обновлена."); }
-                else { MessageBox.Show("Ошибка при изменении информации."); }
+                userToken = await Api.TokenValid(userID, userToken);
+                if (userToken != null)
+                {
+                    var result = await Api.UpdateUser(0, userID, userUpdate, userToken);
+                    if (result == true) { MessageBox.Show("Информация обновлена."); }
+                    else { MessageBox.Show("Ошибка при изменении информации."); }
+                }
+                else
+                {
+                    MessageBox.Show("Ошибка аутентификации. Войдите снова.");
+                    this.Visibility = Visibility.Hidden;
+                }
             }
             else { MessageBox.Show("Неверный формат данных."); }
         }

@@ -61,10 +61,10 @@ namespace Client
         }
         private async void bEnter_Click(object sender, RoutedEventArgs e)
         {
-            var id_user = await Api.GetUserIdByEmail(tbEmail.Text);
-            if (id_user != 0)
+            var userID = await Api.GetUserIdByEmail(tbEmail.Text);
+            if (userID != 0)
             {
-                string token = TokenManager.GetToken(id_user);
+                string token = TokenManager.GetToken(userID);
                 if (token != null)
                 {
                     bool isTokenValid = await Api.VerifyToken(token);
@@ -77,7 +77,12 @@ namespace Client
                         tbPassword.Text = string.Empty;
                         return;
                     }
-                    else { TokenManager.DeleteToken(id_user); }
+                    else
+                    {
+                        MessageBox.Show("Прошло больше часа с последнего входа. Введите пароль заново.");
+                        TokenManager.DeleteToken(userID);
+                        TokenManager.DeleteRefreshToken(userID);
+                    }
                 }
             }
             if (IsValidEmail(tbEmail.Text) && IsPasswordValid(pbPassword.Password))

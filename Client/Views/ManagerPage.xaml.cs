@@ -1,18 +1,7 @@
 ﻿using Client.Data;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Client.For_Token;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 
 namespace Client.Views
 {
@@ -21,20 +10,31 @@ namespace Client.Views
     /// </summary>
     public partial class ManagerPage : Page
     {
-        public string tokenManager;
+        public string managerToken;
+        public int managerID;
         public ManagerPage(string token)
         {
             InitializeComponent();
 
-            tokenManager = token;
+            managerToken = token;
+            managerID = TokenManager.GetIdUserByToken(managerToken);
 
             LoadUsers();
         }
         private async void LoadUsers()
         {
-            var result = await Api.GetUsers(tokenManager);
-            dgUsers.Items.Clear();
-            foreach (var user in result) { dgUsers.Items.Add(user); }
+            managerToken = await Api.TokenValid(managerID, managerToken);
+            if (managerToken != null)
+            {
+                var result = await Api.GetUsers(managerID, managerToken);
+                dgUsers.Items.Clear();
+                foreach (var user in result) { dgUsers.Items.Add(user); }
+            }
+            else
+            {
+                MessageBox.Show("Ошибка аутентификации. Войдите снова.");
+                this.Visibility = Visibility.Hidden;
+            }
         }
 
         private void bExit_Click(object sender, RoutedEventArgs e)

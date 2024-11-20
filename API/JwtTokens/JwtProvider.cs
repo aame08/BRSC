@@ -11,6 +11,8 @@ namespace API.JwtTokens
     {
         private readonly JwtOptions _options = options.Value;
 
+        public string SecretKKey => _options.SecretKey;
+
         public string GenerateToken(User user)
         {
             Claim[] claims = [new("id_user", user.IdUser.ToString()), new("role", user.IdRoleNavigation.NameRole)];
@@ -25,7 +27,22 @@ namespace API.JwtTokens
                 expires: DateTime.UtcNow.AddHours(_options.ExpitesHours));
 
             var tokenValue = new JwtSecurityTokenHandler().WriteToken(token);
+            return tokenValue;
+        }
+        public string GenerateRefreshToken(User user)
+        {
+            Claim[] claims = [new("id_user", user.IdUser.ToString()), new("role", user.IdRoleNavigation.NameRole), new("type", "refresh")];
 
+            var signingCredentials = new SigningCredentials(
+                new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_options.SecretKey)),
+                SecurityAlgorithms.HmacSha256);
+
+            var token = new JwtSecurityToken(
+                claims: claims,
+                signingCredentials: signingCredentials,
+                expires: DateTime.UtcNow.AddDays(1));
+
+            var tokenValue = new JwtSecurityTokenHandler().WriteToken(token);
             return tokenValue;
         }
     }
