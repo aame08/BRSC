@@ -8,7 +8,9 @@
 
         public string EmailUser { get; set; } = null!;
 
-        public string PasswordHash { get; set; } = null!;
+        public string? OldPassword { get; set; }
+
+        public string NewPassword { get; set; } = null!;
 
         public int IdRole { get; set; }
     }

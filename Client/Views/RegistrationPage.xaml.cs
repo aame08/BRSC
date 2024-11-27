@@ -58,7 +58,7 @@ namespace Client.Views
                 {
                     NameUser = tbName.Text,
                     EmailUser = tbEmail.Text,
-                    PasswordHash = tbPassword.Text
+                    NewPassword = tbPassword.Text
                 };
 
                 var (user, token) = await Api.Register(newUser);

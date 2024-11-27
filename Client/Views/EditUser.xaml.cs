@@ -122,10 +122,15 @@ namespace Client.Views
         {
             if (IsValidUserName(tbName.Text) && IsValidEmail(tbEmail.Text))
             {
+                string oldPassword = string.Empty;
                 string newPassword = string.Empty;
-                if (!string.IsNullOrEmpty(tbPassword.Text))
+                if (!string.IsNullOrEmpty(pbPassword.Password) && !string.IsNullOrEmpty(pbOldPassword.Password))
                 {
-                    if (IsValidPassword(pbPassword.Password)) { newPassword = pbPassword.Password; }
+                    if (IsValidPassword(pbPassword.Password))
+                    {
+                        oldPassword = pbOldPassword.Password;
+                        newPassword = pbPassword.Password;
+                    }
                 }
 
                 var userUpdate = new UserDTO
@@ -133,7 +138,8 @@ namespace Client.Views
                     IdUser = userID,
                     NameUser = tbName.Text,
                     EmailUser = tbEmail.Text,
-                    PasswordHash = newPassword,
+                    OldPassword = oldPassword,
+                    NewPassword = newPassword,
                     IdRole = (int)cbRoles.SelectedValue
                 };
 
@@ -176,6 +182,24 @@ namespace Client.Views
             {
                 MessageBox.Show("Ошибка аутентификации. Войдите снова.");
                 this.Visibility = Visibility.Hidden;
+            }
+        }
+
+        private void toggleShowPasswordOld_Click(object sender, RoutedEventArgs e)
+        {
+            if (toggleShowPassword.IsChecked == true)
+            {
+                pbOldPassword.Visibility = Visibility.Collapsed;
+                tbOldPassword.Visibility = Visibility.Visible;
+                tbOldPassword.Text = pbPassword.Password;
+                toggleShowPasswordOld.Content = "👁️‍🗨️";
+            }
+            else
+            {
+                pbOldPassword.Visibility = Visibility.Visible;
+                tbOldPassword.Visibility = Visibility.Collapsed;
+                pbOldPassword.Password = tbPassword.Text;
+                toggleShowPasswordOld.Content = "👁";
             }
         }
     }

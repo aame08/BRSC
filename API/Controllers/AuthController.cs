@@ -40,7 +40,7 @@ namespace API.Controllers
             var existingUser = Program.context.Users.FirstOrDefault(u => u.EmailUser == userDTO.EmailUser);
             if (existingUser != null) { return Conflict("Данная почта уже зарегистрирована."); }
 
-            var passwordHash = BCrypt.Net.BCrypt.HashPassword(userDTO.PasswordHash);
+            var passwordHash = BCrypt.Net.BCrypt.HashPassword(userDTO.OldPassword);
 
             var newUser = new User
             {
@@ -98,6 +98,7 @@ namespace API.Controllers
         /// <param name="email">Электронная почта пользователя, для которого нужно получить ID.</param>
         /// <response code="200">Возвращает ID пользователя, если он найден.</response>
         /// <response code="404">Если пользователь с указанной почтой не найден.</response>
+        [Authorize]
         [HttpGet("{email}")]
         public ActionResult<int> GetIdUserByEmail(string email)
         {

@@ -39,6 +39,13 @@
                     </StackPanel>
 
                     <StackPanel Orientation="Horizontal" Margin="5">
+                        <TextBlock Text="Старый пароль: " Width="130" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="14"/>
+                        <TextBox x:Name="tbOldPassword" Width="150" Height="25" Visibility="Collapsed"/>
+                        <PasswordBox x:Name="pbOldPassword" PasswordChar="*" Width="150" Height="25"/>
+                        <ToggleButton x:Name="toggleShowPasswordOld" Content="👁" BorderBrush="{x:Null}" Background="{x:Null}" Click="toggleShowPasswordOld_Click"/>
+                    </StackPanel>
+
+                    <StackPanel Orientation="Horizontal" Margin="5">
                         <TextBlock Text="Новый пароль: " Width="130" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="14"/>
                         <TextBox x:Name="tbPassword" Text="{Binding PasswordHash}" Width="150" Height="25" Visibility="Collapsed"/>
                         <PasswordBox x:Name="pbPassword" PasswordChar="*" Width="150" Height="25"/>

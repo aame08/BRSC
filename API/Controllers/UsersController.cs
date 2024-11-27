@@ -82,9 +82,10 @@ namespace API.Controllers
                         var isEmailUnique = Program.context.Users.Any(u => u.EmailUser == userDTO.EmailUser);
                         if (isEmailUnique) { return Conflict("Почта занята."); }
                     }
-                    if (!string.IsNullOrWhiteSpace(userDTO.PasswordHash))
+                    if (!string.IsNullOrWhiteSpace(userDTO.NewPassword))
                     {
-                        user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(userDTO.PasswordHash);
+                        if (!BCrypt.Net.BCrypt.Verify(userDTO.OldPassword, user.PasswordHash)) { return Conflict("Пароль неверный."); }
+                        user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(userDTO.NewPassword);
                     }
                     user.NameUser = userDTO.NameUser;
                     if (User.IsInRole("Admin")) { user.IdRole = userDTO.IdRole; }
@@ -112,6 +113,16 @@ namespace API.Controllers
         [HttpDelete("{userID}")]
         public ActionResult<User> DeleteUser(int userID)
         {
+            var currentUserIdClaim = User.FindFirst("id_user");
+            if (!int.TryParse(currentUserIdClaim.Value, out int currentUserId))
+            {
+                return Unauthorized("Некорректный идентификатор текущего пользователя.");
+            }
+            if (currentUserId == userID)
+            {
+                return Conflict("Администратор не может удалить самого себя.");
+            }
+
             var user = Program.context.Users.FirstOrDefault(u => u.IdUser == userID);
             if (user != null)
             {

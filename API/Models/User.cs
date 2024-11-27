@@ -1,4 +1,6 @@
-﻿namespace API.Models;
+﻿using Newtonsoft.Json;
+
+namespace API.Models;
 
 public partial class User
 {
@@ -12,5 +14,6 @@ public partial class User
 
     public int IdRole { get; set; }
 
+    [JsonIgnore]
     public virtual Role IdRoleNavigation { get; set; } = null!;
 }
