@@ -10,9 +10,10 @@ namespace API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class AuthController(JwtProvider jwtProvider) : ControllerBase
+    public class AuthController(JwtProvider jwtProvider, BrscContext context) : ControllerBase
     {
         private readonly JwtProvider _jwtProvider = jwtProvider;
+        private readonly BrscContext _context = context;
 
         /// <summary>
         /// Регистрация нового пользователя.
@@ -31,35 +32,43 @@ namespace API.Controllers
         ///         "idRole": 3
         ///     } 
         /// </remarks>
-        /// <param name="userDTO">Модель данных для регистрации пользователя.</param>
-        /// <response code="201">Возвращает зарегистрированного пользователя и токен.</response>
-        /// <response code="409">Если почта уже зарегистрирована.</response>
+        /// <param name="userDTO">Модель данных для регистрации.</param>
+        /// <response code="201">Пользователь успешно зарегистрирован.</response>
+        /// <response code="409">Если почта уже используется.</response>
+        /// <response code="500">Внутренняя ошибка сервера.</response>
         [HttpPost("register")]
         public ActionResult<User> Register([FromBody] UserDTO userDTO)
         {
-            var existingUser = Program.context.Users.FirstOrDefault(u => u.EmailUser == userDTO.EmailUser);
-            if (existingUser != null) { return Conflict("Данная почта уже зарегистрирована."); }
-
-            var passwordHash = BCrypt.Net.BCrypt.HashPassword(userDTO.OldPassword);
-
-            var newUser = new User
+            try
             {
-                IdUser = Program.context.Users.Any() ? Program.context.Users.Max(u => u.IdUser) + 1 : 1,
-                NameUser = userDTO.NameUser,
-                EmailUser = userDTO.EmailUser,
-                PasswordHash = passwordHash,
-                IdRole = 3,
-                IdRoleNavigation = Program.context.Roles.FirstOrDefault(r => r.IdRole == 3)
-            };
+                var existingUser = _context.Users.FirstOrDefault(u => u.EmailUser == userDTO.EmailUser);
+                if (existingUser != null) { return Conflict("Данная почта уже зарегистрирована."); }
 
-            if (newUser.IdRoleNavigation == null) { return StatusCode(500, "Роль не найдена."); }
+                var passwordHash = BCrypt.Net.BCrypt.HashPassword(userDTO.OldPassword);
 
-            var token = _jwtProvider.GenerateToken(newUser);
+                var newUser = new User
+                {
+                    IdUser = _context.Users.Any() ? _context.Users.Max(u => u.IdUser) + 1 : 1,
+                    NameUser = userDTO.NameUser,
+                    EmailUser = userDTO.EmailUser,
+                    PasswordHash = passwordHash,
+                    IdRole = 3,
+                    IdRoleNavigation = _context.Roles.FirstOrDefault(r => r.IdRole == 3)
+                };
 
-            Program.context.Users.Add(newUser);
-            Program.context.SaveChanges();
+                if (newUser.IdRoleNavigation == null) { return StatusCode(500, "Роль не найдена."); }
 
-            return StatusCode(201, new { User = newUser, AccessToken = token });
+                var token = _jwtProvider.GenerateToken(newUser);
+
+                _context.Users.Add(newUser);
+                _context.SaveChanges();
+
+                return StatusCode(201, new { User = newUser, AccessToken = token });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Внутренная ошибка: {ex.Message}");
+            }
         }
 
         /// <summary>
@@ -72,20 +81,28 @@ namespace API.Controllers
         /// </remarks>
         /// <response code="200">Возвращает токен доступа и refresh токен.</response>
         /// <response code="401">Если пользователь не найден или пароль неверный.</response>
+        /// <response code="500">Внутренняя ошибка сервера.</response>
         [HttpPost("login")]
         public ActionResult Login(string email, string password)
         {
-            var user = Program.context.Users
-                .Include(u => u.IdRoleNavigation)
-                .FirstOrDefault(u => u.EmailUser == email);
+            try
+            {
+                var user = _context.Users
+                    .Include(u => u.IdRoleNavigation)
+                    .FirstOrDefault(u => u.EmailUser == email);
 
-            if (user == null) { return Unauthorized("Пользователь не найден."); }
-            if (!BCrypt.Net.BCrypt.Verify(password, user.PasswordHash)) { return Unauthorized("Неверный пароль."); }
+                if (user == null) { return Unauthorized("Пользователь не найден."); }
+                if (!BCrypt.Net.BCrypt.Verify(password, user.PasswordHash)) { return Unauthorized("Неверный пароль."); }
 
-            var token = _jwtProvider.GenerateToken(user);
-            var refreshToken = _jwtProvider.GenerateRefreshToken(user);
+                var token = _jwtProvider.GenerateToken(user);
+                var refreshToken = _jwtProvider.GenerateRefreshToken(user);
 
-            return Ok(new { User = user, AccessToken = token, RefreshToken = refreshToken });
+                return Ok(new { User = user, AccessToken = token, RefreshToken = refreshToken });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Внутренная ошибка: {ex.Message}");
+            }
         }
 
         /// <summary>
@@ -98,12 +115,21 @@ namespace API.Controllers
         /// <param name="email">Электронная почта пользователя, для которого нужно получить ID.</param>
         /// <response code="200">Возвращает ID пользователя, если он найден.</response>
         /// <response code="404">Если пользователь с указанной почтой не найден.</response>
+        /// <response code="500">Внутренняя ошибка сервера.</response>
         [Authorize]
         [HttpGet("{email}")]
         public ActionResult<int> GetIdUserByEmail(string email)
         {
-            var user = Program.context.Users.FirstOrDefault(u => u.EmailUser == email);
-            return user != null ? user.IdUser : 0;
+            try
+            {
+                var user = _context.Users.FirstOrDefault(u => u.EmailUser == email);
+                if (user == null) return NotFound("Пользователь не найден.");
+                return Ok(user.IdUser);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Внутренная ошибка: {ex.Message}");
+            }
         }
 
         /// <summary>
@@ -114,6 +140,7 @@ namespace API.Controllers
         /// </remarks>
         /// <response code="200">Токен действителен.</response>
         /// <response code="401">Токен недействителен или не был передан.</response>
+        /// <response code="500">Внутренняя ошибка сервера.</response>
         [Authorize]
         [HttpGet("verify-token")]
         public ActionResult VerifyToken()
@@ -131,6 +158,7 @@ namespace API.Controllers
         /// <response code="200">Возвращает новый Access Token и Refresh Token.</response>
         /// <response code="401">Если токен недействителен или не был передан.</response>
         /// <response code="404">Если пользователь, связанный с токеном, не найден.</response>
+        /// <response code="500">Внутренняя ошибка сервера.</response>
         [HttpPost("refresh-token")]
         public ActionResult RefreshToken(string token)
         {
@@ -141,7 +169,7 @@ namespace API.Controllers
             if (userIDClaim == null) { return Unauthorized("Неверный токен."); }
 
             var userID = int.Parse(userIDClaim.Value);
-            var user = Program.context.Users
+            var user = _context.Users
                 .Include(u => u.IdRoleNavigation)
                 .FirstOrDefault(u => u.IdUser == userID);
             if (user == null) { return Unauthorized("Пользователь не найден."); }

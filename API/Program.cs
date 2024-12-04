@@ -1,20 +1,24 @@
 using API.JwtTokens;
 using API.Models;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
-using System.Reflection;
 
 internal class Program
 {
-    public static BrscContext context { get; } = new BrscContext();
+    //public static BrscContext context { get; } = new BrscContext();
     private static void Main(string[] args)
     {
         var builder = WebApplication.CreateBuilder(args);
 
         // Add services to the container.
+        builder.Services.AddDbContext<BrscContext>(options =>
+            options.UseMySql(
+                builder.Configuration.GetConnectionString("DefaultConnection"),
+                ServerVersion.AutoDetect(builder.Configuration.GetConnectionString("DefaultConnection"))));
 
         builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection("JwtOptions"));
         builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)

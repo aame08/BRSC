@@ -8,8 +8,10 @@ namespace API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class UsersController : ControllerBase
+    public class UsersController(BrscContext context) : ControllerBase
     {
+        private readonly BrscContext _context = context;
+
         /// <summary>
         /// Получает список всех пользователей.
         /// </summary>
@@ -20,14 +22,22 @@ namespace API.Controllers
         /// <response code="200">Возвращает список пользователей.</response>
         /// <response code="401">Если пользователь не авторизован.</response>
         /// <response code="403">Если пользователь не имеет подходящей роли.</response>
+        /// <response code="500">Внутренняя ошибка сервера.</response>
         [Authorize(Roles = "Admin, Manager")]
         [HttpGet("users")]
         public ActionResult<List<User>> GetUsers()
         {
-            var users = Program.context.Users
-                .Include(u => u.IdRoleNavigation)
-                .OrderBy(u => u.IdUser).ToList();
-            return Ok(users);
+            try
+            {
+                var users = _context.Users
+                    .Include(u => u.IdRoleNavigation)
+                    .OrderBy(u => u.IdUser).ToList();
+                return Ok(users);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Внутренная ошибка: {ex.Message}");
+            }
         }
 
         /// <summary>
@@ -42,15 +52,23 @@ namespace API.Controllers
         /// <response code="401">Если пользователь не авторизован.</response>
         /// <response code="403">Если пользователь не имеет подходящей роли.</response>
         /// <response code="404">Если пользователь с данным ID не найден.</response>
+        /// <response code="500">Внутренняя ошибка сервера.</response>
         [Authorize(Roles = "User, Admin")]
         [HttpGet("{userID}")]
         public async Task<ActionResult<User>> GetUser(int userID)
         {
-            var user = await Program.context.Users
-                .Include(u => u.IdRoleNavigation)
-                .FirstOrDefaultAsync(u => u.IdUser == userID);
-            if (user == null) { return NotFound(); }
-            return Ok(user);
+            try
+            {
+                var user = await _context.Users
+                    .Include(u => u.IdRoleNavigation)
+                    .FirstOrDefaultAsync(u => u.IdUser == userID);
+                if (user == null) { return NotFound(); }
+                return Ok(user);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Внутренная ошибка: {ex.Message}");
+            }
         }
 
         /// <summary>
@@ -68,34 +86,42 @@ namespace API.Controllers
         /// <response code="403">Если пользователь не имеет подходящей роли.</response>
         /// <response code="404">Если пользователь с данным ID не найден.</response>
         /// <response code="409">Если почта пользователя уже занята или данные не заполнены.</response>
+        /// <response code="500">Внутренняя ошибка сервера.</response>
         [Authorize(Roles = "User, Admin")]
         [HttpPut("{userID}")]
         public ActionResult<User> UpdateUser(int userID, [FromBody] UserDTO userDTO)
         {
-            var user = Program.context.Users.FirstOrDefault(u => u.IdUser == userID);
-            if (user != null)
+            try
             {
-                if (!string.IsNullOrWhiteSpace(userDTO.NameUser) || !string.IsNullOrWhiteSpace(userDTO.EmailUser))
+                var user = _context.Users.FirstOrDefault(u => u.IdUser == userID);
+                if (user != null)
                 {
-                    if (user.EmailUser != userDTO.EmailUser)
+                    if (!string.IsNullOrWhiteSpace(userDTO.NameUser) || !string.IsNullOrWhiteSpace(userDTO.EmailUser))
                     {
-                        var isEmailUnique = Program.context.Users.Any(u => u.EmailUser == userDTO.EmailUser);
-                        if (isEmailUnique) { return Conflict("Почта занята."); }
-                    }
-                    if (!string.IsNullOrWhiteSpace(userDTO.NewPassword))
-                    {
-                        if (!BCrypt.Net.BCrypt.Verify(userDTO.OldPassword, user.PasswordHash)) { return Conflict("Пароль неверный."); }
-                        user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(userDTO.NewPassword);
-                    }
-                    user.NameUser = userDTO.NameUser;
-                    if (User.IsInRole("Admin")) { user.IdRole = userDTO.IdRole; }
+                        if (user.EmailUser != userDTO.EmailUser)
+                        {
+                            var isEmailUnique = _context.Users.Any(u => u.EmailUser == userDTO.EmailUser);
+                            if (isEmailUnique) { return Conflict("Почта занята."); }
+                        }
+                        if (!string.IsNullOrWhiteSpace(userDTO.NewPassword))
+                        {
+                            if (!BCrypt.Net.BCrypt.Verify(userDTO.OldPassword, user.PasswordHash)) { return Conflict("Пароль неверный."); }
+                            user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(userDTO.NewPassword);
+                        }
+                        user.NameUser = userDTO.NameUser;
+                        if (User.IsInRole("Admin")) { user.IdRole = userDTO.IdRole; }
 
-                    Program.context.SaveChanges();
-                    return Ok(user);
+                        _context.SaveChanges();
+                        return Ok(user);
+                    }
+                    else { return Conflict("Данные не заполнены."); }
                 }
-                else { return Conflict("Данные не заполнены."); }
+                else { return NotFound("Пользователь не найден."); }
             }
-            else { return NotFound("Пользователь не найден."); }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Внутренная ошибка: {ex.Message}");
+            }
         }
 
         /// <summary>
@@ -109,28 +135,36 @@ namespace API.Controllers
         /// <response code="401">Если пользователь не авторизован.</response>
         /// <response code="403">Если пользователь не имеет подходящей роли.</response>
         /// <response code="404">Если пользователь с данным ID не найден.</response>
+        /// <response code="500">Внутренняя ошибка сервера.</response>
         [Authorize(Roles = "Admin")]
         [HttpDelete("{userID}")]
         public ActionResult<User> DeleteUser(int userID)
         {
-            var currentUserIdClaim = User.FindFirst("id_user");
-            if (!int.TryParse(currentUserIdClaim.Value, out int currentUserId))
+            try
             {
-                return Unauthorized("Некорректный идентификатор текущего пользователя.");
-            }
-            if (currentUserId == userID)
-            {
-                return Conflict("Администратор не может удалить самого себя.");
-            }
+                var currentUserIdClaim = User.FindFirst("id_user");
+                if (!int.TryParse(currentUserIdClaim.Value, out int currentUserId))
+                {
+                    return Unauthorized("Некорректный идентификатор текущего пользователя.");
+                }
+                if (currentUserId == userID)
+                {
+                    return Conflict("Администратор не может удалить самого себя.");
+                }
 
-            var user = Program.context.Users.FirstOrDefault(u => u.IdUser == userID);
-            if (user != null)
-            {
-                Program.context.Users.Remove(user);
-                Program.context.SaveChanges();
-                return NoContent();
+                var user = _context.Users.FirstOrDefault(u => u.IdUser == userID);
+                if (user != null)
+                {
+                    _context.Users.Remove(user);
+                    _context.SaveChanges();
+                    return NoContent();
+                }
+                else { return NotFound(); }
             }
-            else { return NotFound(); }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Внутренная ошибка: {ex.Message}");
+            }
         }
 
         /// <summary>
@@ -143,12 +177,20 @@ namespace API.Controllers
         /// <response code="200">Возвращает список ролей.</response>
         /// <response code="401">Если пользователь не авторизован.</response>
         /// <response code="403">Если пользователь не имеет подходящей роли.</response>
+        /// <response code="500">Внутренняя ошибка сервера.</response>
         [Authorize(Roles = "Admin")]
         [HttpGet("roles")]
         public ActionResult<List<Role>> GetRoles()
         {
-            var roles = Program.context.Roles.ToList();
-            return Ok(roles);
+            try
+            {
+                var roles = _context.Roles.ToList();
+                return Ok(roles);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Внутренная ошибка: {ex.Message}");
+            }
         }
     }
 }
